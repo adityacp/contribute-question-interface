@@ -1,7 +1,9 @@
 from django import forms
-from models import *
+from interface.models import *
 from django.contrib.auth.models import User
 from django.utils.translation import ugettext_lazy as _
+
+
 class RegistrationForm(forms.Form):
     username = forms.RegexField(regex=r'^\w+$', widget=forms.TextInput(attrs=dict(required=True, max_length=30)), label=_("Username"), error_messages={ 'invalid': _("This value must contain only letters, numbers and underscores.") })
     email = forms.EmailField(widget=forms.TextInput(attrs=dict(required=True, max_length=30)), label=_("Email address"))
@@ -61,16 +63,3 @@ class OutputForm(forms.ModelForm):
 					"_type",
 					"value",
 					]
-
-
-
-
-'''class TestCaseForm(forms.ModelForm):
-	    class Meta:
-	    	model = TestCase
-	    	fields = [
-	    	       "no_of_inputs",
-	    	       "no_of_outputs",
-	    	       
-	    	         ]'''
-	    			    	
