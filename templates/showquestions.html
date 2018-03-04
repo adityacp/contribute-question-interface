@@ -1,0 +1,61 @@
+{% extends "dashboard.html" %}
+
+{% block navbar %}
+<li class="active"><a href="{% url 'home' %}">Home</a></li>
+<li><a href="{% url 'show_all_questions' %}">Contribution</a></li>
+<li><a href="{% url 'logout_page' %}">Logout</a></li>
+ {% endblock %}
+
+{% block title %} Questions {% endblock %}
+
+{% block pagetitle %} Questions {% endblock pagetitle %}
+
+{% block content %}
+<div class="row">
+<!-- Show questions -->
+<div id="show" class= "tab-pane fade in active">
+<form name=frm action="" method="post">
+{% csrf_token %}
+<!-- Filtering Questions  -->
+<div id="filtered-questions">
+{% if questions %}
+<h5><input id="checkall" type="checkbox"> Select All </h5>
+
+<table id="questions-table" class="table table-striped">
+    <thead>
+    <tr>
+    <th> Select </th>
+    <th> Summary </th>
+    <th> Language </th>
+    <th> Type </th>  
+    <th> Marks </th>
+    </tr>
+    </thead>
+    <tbody>
+    
+{% for question in questions %}
+<tr>
+<td>
+<input type="checkbox" name="question" value="{{ question.id }}">
+</td>
+<td><a href="{{URL_ROOT}}/addquestion/{{ question.id }}">{{question.summary|capfirst}}</a></td>
+<td>{{question.language|capfirst}}</td>
+<td>{{question.type|capfirst}}</td>
+<td>{{question.points}}</td>
+</tr>
+{% endfor %}
+</tbody>
+</table>
+{% endif %}
+</div>
+<br>
+<center>
+<button class="btn btn-primary" type="button" onclick='location.replace("{{URL_ROOT}}/addquestion/");'>Add Question <span class="glyphicon glyphicon-plus"></span></button>&nbsp;&nbsp;
+<button class="btn btn-danger" type="submit" onClick="return confirm_delete(frm);" name='delete' value='delete'>Delete Selected <span class="glyphicon glyphicon-minus"></span></button>
+</center>
+</form>
+</div>
+</div>
+</div>
+<!-- End of Show questions -->
+{% endblock %}

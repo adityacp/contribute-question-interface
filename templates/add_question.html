@@ -1,0 +1,36 @@
+{% extends "navigation.html" %}
+{% block navbar %}
+<li class="active"><a href="{% url 'home' %}">Home</a></li>
+<li><a href="{% url 'next_login' %}">Contribution</a></li>
+<li><a href="{% url 'logout_page' %}">Logout</a></li>
+ {% endblock %}
+{% block content %}
+<form action="{{ URL_ROOT }}/addquestion/{{ question.id }}/" method="post" name=frm enctype="multipart/form-data">
+  {% csrf_token %}
+  {{qform.as_p}}
+  {% for formset in formsets %}
+  <div class="form-group">
+      {{ formset.management_form }}
+
+      {% for form in formset %}
+        <div class="link-formset well">
+            {{ form.as_p }}
+        </div>
+      {% endfor %}
+
+  </div>
+  {% endfor %}
+  <p><label for="case_type">Add Test Case:</label> <select id="case_type" name="case_type" onchange="frm.submit()">
+      <option value="" selected="selected">---------</option>
+      <option value="stdiobasedtestcase">StdIO </option>
+  </select></p>
+  <center>
+    <button class="btn" type="submit" name="save_question">Save</button>
+    <button class="btn" type="button" name="button" onClick='location.replace("{{URL_ROOT}}/showquestions/");'>Back to Questions</button>
+  </center>
+</form>
+{% endblock %}
+
+
+
+
