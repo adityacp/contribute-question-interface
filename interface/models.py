@@ -1,7 +1,7 @@
 from __future__ import unicode_literals
 from django.contrib.auth.models import User
 from django.db import models
-
+import json
 
 question_status_choice = (
         (1, "approved"),
@@ -66,15 +66,33 @@ class Question(models.Model):
     # originality of the question
     originality = models.CharField(max_length=24, choices=originality, default="original")
 
-    def __str__(self):
-        return  self.text
-    
-    def approve(self):
-        self.status=1
-    
-    def disapprove(self):
-        self.status=0
+    #status of question
+    status = models.BooleanField(default=False)
 
+    def __str__(self):
+        return  self.summary
+    
+    def _get_test_cases(self):
+        tc_list = [tc.stdiobasedtestcase for tc in TestCase.objects.filter(question=self)]
+        return tc_list
+
+    def consolidate_answer_data(self, user_answer, user=None):
+        question_data = {}
+        metadata = {}
+        test_case_data = []
+
+        test_cases = self._get_test_cases()
+
+        for test in test_cases:
+            test_case_as_dict = test.get_field_value()
+            test_case_data.append(test_case_as_dict)
+
+        question_data['test_case_data'] = test_case_data
+        metadata['user_answer'] = user_answer
+        metadata['language'] = self.language
+        metadata['partial_grading'] = False
+        question_data['metadata'] = metadata
+        return json.dumps(question_data)
 
 class TestCase(models.Model):
     question = models.ForeignKey(Question, blank=True, null=True)
@@ -83,24 +101,19 @@ class TestCase(models.Model):
 class StdIOBasedTestCase(TestCase):
     expected_input = models.TextField(default=None, blank=True, null=True)
     expected_output = models.TextField(default=None)
-    weight = models.IntegerField(default=1.0)
 
     def get_field_value(self):
         return {"test_case_type": "stdiobasedtestcase",
                 "expected_output": self.expected_output,
                 "expected_input": self.expected_input,
-                "weight": self.weight}
+                "weight": 1
+                }
 
     def __str__(self):
         return u'StdIO Based Testcase | Exp. Output: {0} | Exp. Input: {1}'.\
             format(
                 self.expected_output, self.expected_input
             )
-
-    
-    
-    def __str__(self):
-        return str(self.id)
     
 
 class Rating(models.Model):

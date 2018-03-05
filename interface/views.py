@@ -1,7 +1,7 @@
 from interface.models import (Question, TestCase, StdIOBasedTestCase,
                               Rating, Review)
 from django.shortcuts import render,get_object_or_404
-from django.http import HttpResponse,HttpResponseRedirect
+from django.http import HttpResponse,HttpResponseRedirect, JsonResponse
 from interface.forms import *
 from django.forms.models import inlineformset_factory
 from django.core.urlresolvers import reverse
@@ -11,6 +11,9 @@ from django.views.decorators.csrf import csrf_protect
 from django.shortcuts import render_to_response
 from django.template import RequestContext
 from random import choice
+from urllib.parse import urljoin
+import requests
+import json
 
 def show_home(request):  
     
@@ -98,6 +101,7 @@ def add_question(request, question_id=None):
                 )
             )
         if qform.is_valid():
+            a = submit_to_code_server(question.id)
             question = qform.save(commit=False)
             question.user = user
             question.save()
@@ -139,3 +143,27 @@ def add_question(request, question_id=None):
     return render_to_response(
         "add_question.html", context, context_instance=ci
     )
+
+def submit_to_code_server(question_id):
+    """Check if question solution and testcases are correct."""
+
+    question = Question.objects.get(id=question_id)
+    consolidate_answer = question.consolidate_answer_data(question.solution)
+    url = "http://localhost:55555"
+    uid = "fellowship" + str(question_id)
+    status = False
+    submit = requests.post(url, data=dict(uid=uid, json_data=consolidate_answer, user_dir="/home/mahesh"))
+    while not status:
+        result_state = get_result(url, uid)
+        stat = result_state.get("status") 
+        if stat == "done":
+            status = True
+            result = json.loads(result_state.get('result'))
+            print(result)
+            return result
+                
+
+def get_result(url, uid):
+    response = json.loads(requests.get(urljoin(url, uid)).text)
+    return response
+    
